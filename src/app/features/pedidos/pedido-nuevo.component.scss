@@ -1,0 +1,53 @@
+.cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.agregar {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+
+  .campo {
+    margin-bottom: 0;
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .campo--corto {
+    flex: 0 0 110px;
+    min-width: 110px;
+  }
+}
+
+.totales {
+  margin: 1rem 0;
+
+  div {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.25rem 0;
+  }
+
+  dt {
+    color: var(--color-texto-suave);
+    font-size: 0.85rem;
+  }
+
+  dd {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  &__total {
+    border-top: 1px solid var(--color-borde);
+    margin-top: 0.35rem;
+    padding-top: 0.5rem !important;
+    font-size: 1.05rem;
+  }
+}

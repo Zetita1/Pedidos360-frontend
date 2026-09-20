@@ -1,0 +1,77 @@
+@if (cargando()) {
+  <p class="vacio">Cargando pedido...</p>
+} @else if (pedido(); as p) {
+  <header class="cabecera">
+    <div>
+      <h1>{{ p.numero }}</h1>
+      <p class="texto-suave">
+        {{ p.clienteRazonSocial }} &middot; {{ p.clienteRut }}
+      </p>
+    </div>
+    <div class="cabecera__acciones">
+      <span class="etiqueta etiqueta--{{ p.estado }}">{{ p.estado }}</span>
+      <a class="boton boton--claro" routerLink="/pedidos">Volver</a>
+    </div>
+  </header>
+
+  <div class="grilla grilla--2">
+    <section class="panel">
+      <h2>Detalle</h2>
+      <table>
+        <thead>
+          <tr><th>SKU</th><th>Producto</th><th>Cant.</th><th>Precio</th><th>Subtotal</th></tr>
+        </thead>
+        <tbody>
+          @for (linea of p.lineas; track linea.id) {
+            <tr>
+              <td>{{ linea.sku }}</td>
+              <td>{{ linea.nombreProducto }}</td>
+              <td>{{ linea.cantidad }}</td>
+              <td>{{ linea.precioUnitario | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</td>
+              <td>{{ linea.subtotal | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <dl class="totales">
+        <div><dt>Neto</dt><dd>{{ p.neto | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</dd></div>
+        <div><dt>IVA</dt><dd>{{ p.iva | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</dd></div>
+        <div class="totales__total"><dt>Total</dt><dd>{{ p.total | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</dd></div>
+      </dl>
+    </section>
+
+    <section class="panel">
+      <h2>Informacion</h2>
+      <dl class="datos">
+        <div><dt>Despacho</dt><dd>{{ p.direccionDespacho || 'Sin direccion registrada' }}</dd></div>
+        <div><dt>Observacion</dt><dd>{{ p.observacion || '-' }}</dd></div>
+        <div><dt>Registrado por</dt><dd>{{ p.registradoPor || '-' }}</dd></div>
+        <div><dt>Creado</dt><dd>{{ p.creadoEn | date: 'dd-MM-yyyy HH:mm' }}</dd></div>
+        <div><dt>Ultima actualizacion</dt><dd>{{ p.actualizadoEn | date: 'dd-MM-yyyy HH:mm' }}</dd></div>
+      </dl>
+
+      @if (auth.puedeGestionar() && siguientesEstados().length > 0) {
+        <h2 style="margin-top: 1rem">Avanzar estado</h2>
+        <div class="acciones">
+          @for (estado of siguientesEstados(); track estado) {
+            @if (estado !== 'ANULADO' || auth.esAdmin()) {
+              <button
+                type="button"
+                class="boton boton--pequeno"
+                [class.boton--peligro]="estado === 'ANULADO'"
+                (click)="avanzar(estado)">
+                {{ estado }}
+              </button>
+            }
+          }
+        </div>
+        <p class="texto-suave" style="font-size: 0.8rem; margin-top: 0.5rem">
+          Las transiciones invalidas son rechazadas por el microservicio con un 409.
+        </p>
+      }
+    </section>
+  </div>
+} @else {
+  <p class="vacio">No encontramos el pedido solicitado.</p>
+}

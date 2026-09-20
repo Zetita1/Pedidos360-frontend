@@ -1,0 +1,97 @@
+<header class="cabecera">
+  <div>
+    <h1>Nuevo pedido</h1>
+    <p class="texto-suave">Los precios se toman del catalogo al momento de registrar</p>
+  </div>
+  <a class="boton boton--claro" routerLink="/pedidos">Volver</a>
+</header>
+
+<div class="grilla grilla--2">
+  <section class="panel">
+    <h2>Datos del pedido</h2>
+    <form [formGroup]="formulario">
+      <div class="campo">
+        <label for="clienteId">Cliente</label>
+        <select id="clienteId" formControlName="clienteId">
+          <option [value]="0">Selecciona un cliente</option>
+          @for (cliente of clientes(); track cliente.id) {
+            <option [value]="cliente.id">{{ cliente.rut }} - {{ cliente.razonSocial }}</option>
+          }
+        </select>
+        @if (formulario.controls.clienteId.invalid && formulario.controls.clienteId.touched) {
+          <p class="campo__error">Debes elegir un cliente.</p>
+        }
+      </div>
+      <div class="campo">
+        <label for="direccionDespacho">Direccion de despacho</label>
+        <input id="direccionDespacho" formControlName="direccionDespacho"
+               placeholder="Si se deja vacio se usa la del cliente" />
+      </div>
+      <div class="campo">
+        <label for="observacion">Observacion</label>
+        <input id="observacion" formControlName="observacion" placeholder="Instrucciones de entrega" />
+      </div>
+    </form>
+
+    <h2 style="margin-top: 1rem">Agregar productos</h2>
+    <form [formGroup]="seleccion" (ngSubmit)="agregar()" class="agregar">
+      <div class="campo">
+        <label for="productoId">Producto</label>
+        <select id="productoId" formControlName="productoId">
+          <option [value]="0">Selecciona un producto</option>
+          @for (producto of productos(); track producto.id) {
+            <option [value]="producto.id">
+              {{ producto.sku }} - {{ producto.nombre }} (stock {{ producto.stock }})
+            </option>
+          }
+        </select>
+      </div>
+      <div class="campo campo--corto">
+        <label for="cantidad">Cantidad</label>
+        <input id="cantidad" type="number" min="1" formControlName="cantidad" />
+      </div>
+      <button type="submit" class="boton">Agregar</button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <h2>Detalle</h2>
+    @if (carro().length === 0) {
+      <p class="vacio">Aun no agregas productos.</p>
+    } @else {
+      <table>
+        <thead>
+          <tr><th>Producto</th><th>Cant.</th><th>Precio</th><th>Subtotal</th><th></th></tr>
+        </thead>
+        <tbody>
+          @for (linea of carro(); track linea.producto.id) {
+            <tr>
+              <td>{{ linea.producto.sku }}<br /><small class="texto-suave">{{ linea.producto.nombre }}</small></td>
+              <td>{{ linea.cantidad }}</td>
+              <td>{{ linea.producto.precio | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</td>
+              <td>{{ linea.producto.precio * linea.cantidad | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</td>
+              <td>
+                <button type="button" class="boton boton--claro boton--pequeno" (click)="quitar(linea.producto.id)">
+                  Quitar
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <dl class="totales">
+        <div><dt>Neto</dt><dd>{{ neto() | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</dd></div>
+        <div><dt>IVA 19%</dt><dd>{{ iva() | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</dd></div>
+        <div class="totales__total"><dt>Total</dt><dd>{{ total() | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</dd></div>
+      </dl>
+    }
+
+    <button type="button" class="boton" (click)="guardar()" [disabled]="guardando() || carro().length === 0">
+      {{ guardando() ? 'Registrando...' : 'Registrar pedido' }}
+    </button>
+    <p class="texto-suave" style="font-size: 0.8rem; margin-top: 0.5rem">
+      El pedido queda en BORRADOR. El stock se descuenta recien al confirmarlo.
+    </p>
+  </section>
+</div>

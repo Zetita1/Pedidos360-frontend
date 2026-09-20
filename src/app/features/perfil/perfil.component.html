@@ -1,0 +1,40 @@
+<header style="margin-bottom: 1rem">
+  <h1>Mi perfil</h1>
+  <p class="texto-suave">Claims del token y permisos resueltos por el backend</p>
+</header>
+
+<div class="grilla grilla--2">
+  <section class="panel">
+    <h2>Lo que lee el SPA del token</h2>
+    <dl class="datos">
+      <div><dt>Nombre</dt><dd>{{ auth.nombre() }}</dd></div>
+      <div><dt>Correo</dt><dd>{{ auth.email() || '-' }}</dd></div>
+      <div><dt>Identificador (oid)</dt><dd>{{ auth.usuarioId() || '-' }}</dd></div>
+      <div><dt>Roles</dt><dd>{{ auth.roles().join(', ') || 'sin roles' }}</dd></div>
+      <div><dt>Scopes</dt><dd>{{ auth.scopes().join(', ') || 'sin scopes' }}</dd></div>
+      <div>
+        <dt>Vence</dt>
+        <dd>{{ vencimiento() ? (vencimiento() | date: 'dd-MM-yyyy HH:mm:ss') : '-' }}</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section class="panel">
+    <h2>Lo que valida y responde el BFF</h2>
+    @if (error()) {
+      <p class="vacio">No fue posible consultar el perfil en el backend.</p>
+    } @else if (perfilBackend(); as perfil) {
+      <dl class="datos">
+        <div><dt>Nombre</dt><dd>{{ perfil.nombre }}</dd></div>
+        <div><dt>Tenant</dt><dd>{{ perfil.tenantId || '-' }}</dd></div>
+        <div><dt>Roles</dt><dd>{{ perfil.roles.join(', ') || 'sin roles' }}</dd></div>
+        <div><dt>Scopes</dt><dd>{{ perfil.scopes.join(', ') || 'sin scopes' }}</dd></div>
+      </dl>
+
+      <h3 style="margin-top: 1rem">Permisos</h3>
+      <pre class="json">{{ perfil.permisos | json }}</pre>
+    } @else {
+      <p class="vacio">Consultando al BFF...</p>
+    }
+  </section>
+</div>

@@ -1,0 +1,50 @@
+<div class="app">
+  <header class="barra">
+    <a class="marca" routerLink="/">
+      <span class="marca__icono">P360</span>
+      <span class="marca__texto">Pedidos360</span>
+    </a>
+
+    @if (auth.autenticado()) {
+      <nav class="menu">
+        @if (auth.puedeGestionar()) {
+          <a routerLink="/tablero" routerLinkActive="activo">Tablero</a>
+          <a routerLink="/pedidos" routerLinkActive="activo">Pedidos</a>
+          <a routerLink="/clientes" routerLinkActive="activo">Clientes</a>
+        }
+        <a routerLink="/catalogo" routerLinkActive="activo">Catalogo</a>
+        <a routerLink="/mis-pedidos" routerLinkActive="activo">Mis pedidos</a>
+        <a routerLink="/perfil" routerLinkActive="activo">Perfil</a>
+      </nav>
+
+      <div class="sesion">
+        <div class="sesion__datos">
+          <strong>{{ auth.nombre() }}</strong>
+          <small>{{ auth.roles().join(', ') || 'Sin roles asignados' }}</small>
+        </div>
+        <button type="button" class="boton boton--claro" (click)="cerrarSesion()">
+          Cerrar sesion
+        </button>
+      </div>
+    }
+  </header>
+
+  @if (notificaciones.items().length > 0) {
+    <div class="avisos">
+      @for (aviso of notificaciones.items(); track aviso.id) {
+        <div class="aviso" [class]="'aviso--' + aviso.tipo">
+          <span>{{ aviso.mensaje }}</span>
+          <button type="button" (click)="notificaciones.cerrar(aviso.id)" aria-label="Cerrar">x</button>
+        </div>
+      }
+    </div>
+  }
+
+  <main class="contenido">
+    <router-outlet />
+  </main>
+
+  <footer class="pie">
+    Pedidos360 &middot; DSY1107 Desarrollo Cloud Native I &middot; Angular + MSAL sobre AWS API Gateway
+  </footer>
+</div>

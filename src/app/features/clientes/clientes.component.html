@@ -1,0 +1,124 @@
+<header class="cabecera">
+  <div>
+    <h1>Clientes</h1>
+    <p class="texto-suave">Fichas y direcciones de despacho</p>
+  </div>
+  <button type="button" class="boton" (click)="alternarFormulario()">
+    {{ mostrarFormulario() ? 'Cancelar' : 'Nuevo cliente' }}
+  </button>
+</header>
+
+@if (mostrarFormulario()) {
+  <section class="panel" style="margin-bottom: 1rem">
+    <h2>Nueva ficha</h2>
+    <form [formGroup]="formulario" (ngSubmit)="guardar()">
+      <div class="grilla grilla--2">
+        <div class="campo">
+          <label for="rut">RUT</label>
+          <input id="rut" formControlName="rut" placeholder="12345678-9" />
+          @if (campoInvalido('rut')) {
+            <p class="campo__error">Formato esperado: 12345678-9</p>
+          }
+        </div>
+        <div class="campo">
+          <label for="razonSocial">Razon social o nombre</label>
+          <input id="razonSocial" formControlName="razonSocial" />
+          @if (campoInvalido('razonSocial')) {
+            <p class="campo__error">Campo obligatorio.</p>
+          }
+        </div>
+        <div class="campo">
+          <label for="email">Correo</label>
+          <input id="email" type="email" formControlName="email" />
+          @if (campoInvalido('email')) {
+            <p class="campo__error">Ingresa un correo valido.</p>
+          }
+        </div>
+        <div class="campo">
+          <label for="telefono">Telefono</label>
+          <input id="telefono" formControlName="telefono" placeholder="+56912345678" />
+        </div>
+        <div class="campo">
+          <label for="segmento">Segmento</label>
+          <select id="segmento" formControlName="segmento">
+            <option value="MINORISTA">Minorista</option>
+            <option value="MAYORISTA">Mayorista</option>
+            <option value="EMPRESA">Empresa</option>
+          </select>
+        </div>
+      </div>
+
+      <fieldset formGroupName="direccion" class="direccion">
+        <legend>Direccion de despacho</legend>
+        <div class="grilla grilla--2">
+          <div class="campo">
+            <label for="calle">Calle</label>
+            <input id="calle" formControlName="calle" />
+            @if (campoInvalido('direccion.calle')) {
+              <p class="campo__error">Campo obligatorio.</p>
+            }
+          </div>
+          <div class="campo">
+            <label for="numero">Numero</label>
+            <input id="numero" formControlName="numero" />
+          </div>
+          <div class="campo">
+            <label for="comuna">Comuna</label>
+            <input id="comuna" formControlName="comuna" />
+            @if (campoInvalido('direccion.comuna')) {
+              <p class="campo__error">Campo obligatorio.</p>
+            }
+          </div>
+          <div class="campo">
+            <label for="ciudad">Ciudad</label>
+            <input id="ciudad" formControlName="ciudad" />
+            @if (campoInvalido('direccion.ciudad')) {
+              <p class="campo__error">Campo obligatorio.</p>
+            }
+          </div>
+          <div class="campo">
+            <label for="region">Region</label>
+            <input id="region" formControlName="region" />
+          </div>
+        </div>
+      </fieldset>
+
+      <button type="submit" class="boton" [disabled]="guardando()">
+        {{ guardando() ? 'Guardando...' : 'Guardar cliente' }}
+      </button>
+    </form>
+  </section>
+}
+
+<section class="panel">
+  <div class="filtros">
+    <div class="campo">
+      <label for="filtro">Buscar</label>
+      <input id="filtro" [formControl]="filtro" placeholder="RUT, razon social o correo" />
+    </div>
+    <button type="button" class="boton" (click)="buscar()">Buscar</button>
+  </div>
+
+  @if (cargando()) {
+    <p class="vacio">Cargando clientes...</p>
+  } @else if (clientes().length === 0) {
+    <p class="vacio">No hay clientes registrados con ese criterio.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr><th>RUT</th><th>Cliente</th><th>Correo</th><th>Segmento</th><th>Despacho</th></tr>
+      </thead>
+      <tbody>
+        @for (cliente of clientes(); track cliente.id) {
+          <tr>
+            <td>{{ cliente.rut }}</td>
+            <td>{{ cliente.razonSocial }}</td>
+            <td>{{ cliente.email }}</td>
+            <td><span class="etiqueta">{{ cliente.segmento }}</span></td>
+            <td class="texto-suave">{{ cliente.direccionFormateada || '-' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

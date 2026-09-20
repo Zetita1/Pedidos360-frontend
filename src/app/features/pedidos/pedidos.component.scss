@@ -1,0 +1,26 @@
+.cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.filtros {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  margin-bottom: 1rem;
+
+  .campo {
+    margin-bottom: 0;
+    min-width: 220px;
+  }
+}
+
+.acciones {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}

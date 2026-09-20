@@ -1,0 +1,31 @@
+.cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.filtros {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+
+  .campo {
+    margin-bottom: 0;
+    min-width: 200px;
+  }
+
+  &__acciones {
+    display: flex;
+    gap: 0.5rem;
+  }
+}
+
+.stock-bajo {
+  color: var(--color-alerta);
+  font-weight: 700;
+}

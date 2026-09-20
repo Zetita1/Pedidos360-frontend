@@ -1,0 +1,20 @@
+<section class="login">
+  <div class="login__tarjeta panel">
+    <span class="login__logo">P360</span>
+    <h1>Pedidos360</h1>
+    <p class="texto-suave">
+      Gestion de pedidos, clientes y catalogo. El acceso se autentica con tu cuenta
+      institucional a traves de Microsoft Entra ID.
+    </p>
+
+    <button type="button" class="boton" (click)="ingresar()" [disabled]="ocupado()">
+      {{ ocupado() ? 'Conectando con el IDaaS...' : 'Ingresar con Microsoft Entra ID' }}
+    </button>
+
+    <ul class="login__pasos texto-suave">
+      <li>El SPA obtiene un access token con los scopes de la API.</li>
+      <li>El token viaja al AWS API Gateway en cada peticion.</li>
+      <li>El BFF y los microservicios vuelven a validar firma, issuer y audiencia.</li>
+    </ul>
+  </div>
+</section>

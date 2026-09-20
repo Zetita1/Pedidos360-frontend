@@ -1,0 +1,123 @@
+<header class="cabecera">
+  <div>
+    <h1>Catalogo</h1>
+    <p class="texto-suave">Productos disponibles para armar pedidos</p>
+  </div>
+  @if (auth.esAdmin()) {
+    <button type="button" class="boton" (click)="alternarFormulario()">
+      {{ mostrarFormulario() ? 'Cancelar' : 'Nuevo producto' }}
+    </button>
+  }
+</header>
+
+@if (mostrarFormulario() && auth.esAdmin()) {
+  <section class="panel" style="margin-bottom: 1rem">
+    <h2>Nuevo producto</h2>
+    <form [formGroup]="formulario" (ngSubmit)="guardar()" class="grilla grilla--2">
+      <div class="campo">
+        <label for="sku">SKU</label>
+        <input id="sku" formControlName="sku" placeholder="NB-010" />
+        @if (campoInvalido('sku')) {
+          <p class="campo__error">El SKU es obligatorio (maximo 40 caracteres).</p>
+        }
+      </div>
+      <div class="campo">
+        <label for="nombre">Nombre</label>
+        <input id="nombre" formControlName="nombre" placeholder="Notebook Pro 14" />
+        @if (campoInvalido('nombre')) {
+          <p class="campo__error">El nombre es obligatorio.</p>
+        }
+      </div>
+      <div class="campo">
+        <label for="precio">Precio neto</label>
+        <input id="precio" type="number" formControlName="precio" min="1" />
+        @if (campoInvalido('precio')) {
+          <p class="campo__error">El precio debe ser mayor a cero.</p>
+        }
+      </div>
+      <div class="campo">
+        <label for="stock">Stock inicial</label>
+        <input id="stock" type="number" formControlName="stock" min="0" />
+        @if (campoInvalido('stock')) {
+          <p class="campo__error">El stock no puede ser negativo.</p>
+        }
+      </div>
+      <div class="campo">
+        <label for="categoria">Categoria</label>
+        <input id="categoria" formControlName="categoria" placeholder="Computacion" />
+        @if (campoInvalido('categoria')) {
+          <p class="campo__error">Indica una categoria.</p>
+        }
+      </div>
+      <div class="campo">
+        <label for="descripcion">Descripcion</label>
+        <input id="descripcion" formControlName="descripcion" placeholder="Detalle breve" />
+      </div>
+      <div style="grid-column: 1 / -1">
+        <button type="submit" class="boton" [disabled]="guardando()">
+          {{ guardando() ? 'Guardando...' : 'Guardar producto' }}
+        </button>
+      </div>
+    </form>
+  </section>
+}
+
+<section class="panel">
+  <form [formGroup]="filtros" (ngSubmit)="buscar()" class="filtros">
+    <div class="campo">
+      <label for="buscar">Buscar</label>
+      <input id="buscar" formControlName="buscar" placeholder="Nombre o SKU" />
+    </div>
+    <div class="campo">
+      <label for="categoria-filtro">Categoria</label>
+      <select id="categoria-filtro" formControlName="categoria">
+        <option value="">Todas</option>
+        @for (categoria of categorias(); track categoria) {
+          <option [value]="categoria">{{ categoria }}</option>
+        }
+      </select>
+    </div>
+    <div class="filtros__acciones">
+      <button type="submit" class="boton">Filtrar</button>
+      <button type="button" class="boton boton--claro" (click)="limpiar()">Limpiar</button>
+    </div>
+  </form>
+
+  @if (cargando()) {
+    <p class="vacio">Cargando catalogo...</p>
+  } @else if (productos().length === 0) {
+    <p class="vacio">No hay productos que coincidan con el filtro.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>SKU</th><th>Producto</th><th>Categoria</th><th>Precio</th><th>Stock</th>
+          @if (auth.esAdmin()) { <th></th> }
+        </tr>
+      </thead>
+      <tbody>
+        @for (producto of productos(); track producto.id) {
+          <tr>
+            <td>{{ producto.sku }}</td>
+            <td>
+              {{ producto.nombre }}
+              @if (producto.descripcion) {
+                <br /><small class="texto-suave">{{ producto.descripcion }}</small>
+              }
+            </td>
+            <td>{{ producto.categoria }}</td>
+            <td>{{ producto.precio | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</td>
+            <td [class.stock-bajo]="producto.stock <= 10">{{ producto.stock }}</td>
+            @if (auth.esAdmin()) {
+              <td>
+                <button type="button" class="boton boton--claro boton--pequeno" (click)="desactivar(producto)">
+                  Dar de baja
+                </button>
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

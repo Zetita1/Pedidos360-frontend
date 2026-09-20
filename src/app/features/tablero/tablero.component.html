@@ -1,0 +1,96 @@
+<header class="cabecera">
+  <div>
+    <h1>Hola, {{ auth.nombre() }}</h1>
+    <p class="texto-suave">Resumen operativo de Pedidos360</p>
+  </div>
+  <div class="cabecera__acciones">
+    <button type="button" class="boton boton--claro" (click)="cargar()">Actualizar</button>
+    <a class="boton" routerLink="/pedidos/nuevo">Nuevo pedido</a>
+  </div>
+</header>
+
+@if (cargando()) {
+  <p class="vacio">Cargando indicadores...</p>
+} @else if (datos(); as t) {
+  <section class="grilla grilla--4">
+    <article class="panel indicador">
+      <span class="indicador__etiqueta">Pedidos totales</span>
+      <strong class="indicador__valor">{{ t.totalPedidos }}</strong>
+    </article>
+    <article class="panel indicador">
+      <span class="indicador__etiqueta">Monto en curso</span>
+      <strong class="indicador__valor">{{ t.montoEnCurso | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</strong>
+    </article>
+    <article class="panel indicador">
+      <span class="indicador__etiqueta">Productos activos</span>
+      <strong class="indicador__valor">{{ t.productosActivos }}</strong>
+    </article>
+    <article class="panel indicador">
+      <span class="indicador__etiqueta">Stock critico</span>
+      <strong class="indicador__valor">{{ t.stockCritico.length }}</strong>
+    </article>
+  </section>
+
+  <section class="grilla grilla--2" style="margin-top: 1rem">
+    <article class="panel">
+      <h2>Pedidos por estado</h2>
+      @for (fila of t.pedidosPorEstado | keyvalue; track fila.key) {
+        <div class="fila-estado">
+          <span class="etiqueta etiqueta--{{ fila.key }}">{{ fila.key }}</span>
+          <strong>{{ fila.value }}</strong>
+        </div>
+      } @empty {
+        <p class="vacio">Sin pedidos registrados.</p>
+      }
+    </article>
+
+    <article class="panel">
+      <h2>Productos por reponer</h2>
+      @if (t.stockCritico.length > 0) {
+        <table>
+          <thead>
+            <tr><th>SKU</th><th>Producto</th><th>Stock</th></tr>
+          </thead>
+          <tbody>
+            @for (producto of t.stockCritico; track producto.id) {
+              <tr>
+                <td>{{ producto.sku }}</td>
+                <td>{{ producto.nombre }}</td>
+                <td><strong>{{ producto.stock }}</strong></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else {
+        <p class="vacio">Todo el catalogo tiene stock suficiente.</p>
+      }
+    </article>
+  </section>
+
+  <section class="panel" style="margin-top: 1rem">
+    <h2>Ultimos pedidos</h2>
+    @if (t.ultimosPedidos.length > 0) {
+      <table>
+        <thead>
+          <tr><th>Numero</th><th>Cliente</th><th>Estado</th><th>Total</th><th>Fecha</th><th></th></tr>
+        </thead>
+        <tbody>
+          @for (pedido of t.ultimosPedidos; track pedido.id) {
+            <tr>
+              <td>{{ pedido.numero }}</td>
+              <td>{{ pedido.cliente }}</td>
+              <td><span class="etiqueta etiqueta--{{ pedido.estado }}">{{ pedido.estado }}</span></td>
+              <td>{{ pedido.total | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</td>
+              <td>{{ pedido.creadoEn ? (pedido.creadoEn | date: 'dd-MM-yyyy HH:mm') : '-' }}</td>
+              <td><a [routerLink]="['/pedidos', pedido.id]">Ver</a></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    } @else {
+      <p class="vacio">Aun no hay pedidos.</p>
+    }
+  </section>
+} @else {
+  <p class="vacio">No fue posible cargar el tablero.</p>
+}

@@ -1,0 +1,62 @@
+<header class="cabecera">
+  <div>
+    <h1>Pedidos</h1>
+    <p class="texto-suave">Seguimiento de la operacion comercial</p>
+  </div>
+  <a class="boton" routerLink="/pedidos/nuevo">Nuevo pedido</a>
+</header>
+
+<section class="panel">
+  <div class="filtros">
+    <div class="campo">
+      <label for="estado">Estado</label>
+      <select id="estado" [formControl]="filtroEstado" (change)="buscar()">
+        <option value="">Todos</option>
+        @for (estado of estados; track estado) {
+          <option [value]="estado">{{ estado }}</option>
+        }
+      </select>
+    </div>
+    <button type="button" class="boton boton--claro" (click)="buscar()">Actualizar</button>
+  </div>
+
+  @if (cargando()) {
+    <p class="vacio">Cargando pedidos...</p>
+  } @else if (pedidos().length === 0) {
+    <p class="vacio">No hay pedidos con ese filtro.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Numero</th><th>Cliente</th><th>Estado</th><th>Total</th><th>Creado</th><th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (pedido of pedidos(); track pedido.id) {
+          <tr>
+            <td><a [routerLink]="['/pedidos', pedido.id]">{{ pedido.numero }}</a></td>
+            <td>
+              {{ pedido.clienteRazonSocial }}
+              <br /><small class="texto-suave">{{ pedido.clienteRut }}</small>
+            </td>
+            <td><span class="etiqueta etiqueta--{{ pedido.estado }}">{{ pedido.estado }}</span></td>
+            <td>{{ pedido.total | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</td>
+            <td>{{ pedido.creadoEn | date: 'dd-MM-yyyy HH:mm' }}</td>
+            <td class="acciones">
+              @if (pedido.estado === 'BORRADOR') {
+                <button type="button" class="boton boton--pequeno" (click)="confirmar(pedido)">
+                  Confirmar
+                </button>
+              }
+              @if (auth.esAdmin() && pedido.estado !== 'ANULADO' && pedido.estado !== 'ENTREGADO') {
+                <button type="button" class="boton boton--peligro boton--pequeno" (click)="anular(pedido)">
+                  Anular
+                </button>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

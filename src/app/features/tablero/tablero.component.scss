@@ -1,0 +1,43 @@
+.cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+
+  &__acciones {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+}
+
+.indicador {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+
+  &__etiqueta {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-texto-suave);
+  }
+
+  &__valor {
+    font-size: 1.6rem;
+  }
+}
+
+.fila-estado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--color-borde);
+}
+
+.fila-estado:last-child {
+  border-bottom: none;
+}

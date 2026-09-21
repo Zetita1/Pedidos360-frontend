@@ -6,17 +6,17 @@
  */
 
 /** Subdominio del tenant externo (CIAM), sin el sufijo .ciamlogin.com */
-const TENANT_SUBDOMINIO = 'pedidos360duoc2026';
+const TENANT_SUBDOMINIO = 'pedidos360duocuc';
 
 /** Directory (tenant) ID del tenant externo */
-const TENANT_ID = 'PENDIENTE-pegar-el-Id-de-inquilino';
+const TENANT_ID = '9d265688-dbb5-4a46-9b9a-8f6765928aa0';
 
 export const environment = {
   production: false,
 
   /** Registro de aplicacion SPA en Microsoft Entra External ID. */
   msal: {
-    clientId: '11111111-1111-1111-1111-111111111111',
+    clientId: '4763762f-79ea-47ad-9966-bda5e049df68',
     tenantId: TENANT_ID,
 
     /**
@@ -42,11 +42,13 @@ export const environment = {
   ],
 
   /**
-   * Origen del AWS API Gateway. En desarrollo queda vacio: las llamadas salen relativas
-   * y el proxy de ng serve (proxy.conf.json) las reparte a cada microservicio, imitando
-   * exactamente el ruteo que hace el API Gateway en la nube.
+   * Origen del AWS API Gateway. Todo el trafico del SPA pasa por el gateway, que valida
+   * el JWT y enruta a los microservicios en EC2.
+   *
+   * Para trabajar sin AWS, dejarlo vacio (''): las llamadas salen relativas y el proxy de
+   * ng serve (proxy.conf.json) las reparte a los microservicios locales.
    */
-  apiBaseUrl: '',
+  apiBaseUrl: 'https://j9w6eomnw5.execute-api.us-east-1.amazonaws.com',
 
   /**
    * Rutas publicadas en el API Gateway. Cada recurso va a su microservicio duenio; el BFF

@@ -6,7 +6,7 @@ import {
   EventType,
   InteractionStatus,
 } from '@azure/msal-browser';
-import { filter } from 'rxjs';
+import { filter, firstValueFrom } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 
@@ -40,6 +40,15 @@ export class AuthService {
   private readonly cuenta = signal<AccountInfo | null>(null);
   private readonly interaccion = signal<InteractionStatus>(InteractionStatus.Startup);
 
+  /**
+   * Claims del access token emitido para la API.
+   *
+   * Los roles de aplicacion estan definidos en el registro de la API, asi que solo viajan
+   * en el token cuya audiencia es esa API. El ID token —cuya audiencia es el SPA— no los
+   * trae. Por eso la identidad se lee del ID token y la autorizacion del access token.
+   */
+  private readonly claimsApi = signal<ClaimsEntraId>({});
+
   /** true mientras MSAL esta procesando un login, logout o renovacion. */
   readonly ocupado = computed(() => this.interaccion() !== InteractionStatus.None);
 
@@ -55,11 +64,13 @@ export class AuthService {
 
   readonly email = computed(() => this.claims().preferred_username ?? '');
 
-  readonly usuarioId = computed(() => this.claims().oid ?? '');
+  readonly usuarioId = computed(() => this.claims().oid ?? this.claimsApi().oid ?? '');
 
-  readonly roles = computed(() => this.claims().roles ?? []);
+  readonly roles = computed(() => this.claimsApi().roles ?? this.claims().roles ?? []);
 
-  readonly scopes = computed(() => (this.claims().scp ?? '').split(' ').filter(Boolean));
+  readonly scopes = computed(() =>
+    (this.claimsApi().scp ?? this.claims().scp ?? '').split(' ').filter(Boolean),
+  );
 
   readonly esAdmin = computed(() => this.roles().includes(ROLES.admin));
 
@@ -74,6 +85,7 @@ export class AuthService {
       this.interaccion.set(estado);
       if (estado === InteractionStatus.None) {
         this.sincronizarCuenta();
+        void this.refrescarClaimsDeApi();
       }
     });
 
@@ -86,7 +98,10 @@ export class AuthService {
             evento.eventType === EventType.ACTIVE_ACCOUNT_CHANGED,
         ),
       )
-      .subscribe(() => this.sincronizarCuenta());
+      .subscribe(() => {
+        this.sincronizarCuenta();
+        void this.refrescarClaimsDeApi();
+      });
   }
 
   /** Inicia sesion contra el IDaaS mediante redirect, solicitando los scopes de la API. */
@@ -118,8 +133,52 @@ export class AuthService {
 
   /** Vencimiento del token en hora local, util para mostrarlo en la vista de perfil. */
   vencimientoToken(): Date | null {
-    const exp = this.claims().exp;
+    const exp = this.claimsApi().exp ?? this.claims().exp;
     return exp ? new Date(exp * 1000) : null;
+  }
+
+  /**
+   * Pide en silencio el access token de la API y guarda sus claims, que son los que traen
+   * los roles y los scopes. Se llama al arrancar y cada vez que MSAL emite un token nuevo.
+   *
+   * @returns promesa que se resuelve cuando los claims estan disponibles
+   */
+  async refrescarClaimsDeApi(): Promise<void> {
+    const cuenta = this.msal.instance.getActiveAccount() ?? this.msal.instance.getAllAccounts()[0];
+    if (!cuenta) {
+      this.claimsApi.set({});
+      return;
+    }
+
+    try {
+      const resultado = await firstValueFrom(
+        this.msal.acquireTokenSilent({ scopes: environment.apiScopes, account: cuenta }),
+      );
+      this.claimsApi.set(AuthService.decodificarPayload(resultado.accessToken));
+    } catch (error) {
+      // Sin token de API el usuario queda sin roles: el backend respondera 403 igual.
+      console.warn('No fue posible obtener el access token de la API', error);
+      this.claimsApi.set({});
+    }
+  }
+
+  /**
+   * Lee el payload de un JWT sin verificarlo. La verificacion criptografica la hacen el
+   * API Gateway y el backend; aqui solo se usa para decidir que mostrar en pantalla.
+   *
+   * @param jwt token en formato compacto
+   * @return claims del payload
+   */
+  private static decodificarPayload(jwt: string): ClaimsEntraId {
+    try {
+      const payload = jwt.split('.')[1];
+      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const binario = atob(base64);
+      const bytes = Uint8Array.from(binario, (caracter) => caracter.charCodeAt(0));
+      return JSON.parse(new TextDecoder().decode(bytes)) as ClaimsEntraId;
+    } catch {
+      return {};
+    }
   }
 
   private sincronizarCuenta(): void {

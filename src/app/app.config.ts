@@ -19,6 +19,7 @@ import {
 import { firstValueFrom } from 'rxjs';
 
 import { routes } from './app.routes';
+import { AuthService } from './core/auth/auth.service';
 import {
   MSALGuardConfigFactory,
   MSALInstanceFactory,
@@ -32,6 +33,7 @@ import { errorInterceptor } from './core/interceptors/error.interceptor';
  */
 function inicializarMsal(): Promise<void> {
   const msal = inject(MsalService);
+  const auth = inject(AuthService);
 
   return firstValueFrom(msal.initialize())
     .then(() => firstValueFrom(msal.handleRedirectObservable()))
@@ -40,6 +42,9 @@ function inicializarMsal(): Promise<void> {
       if (cuenta) {
         msal.instance.setActiveAccount(cuenta);
       }
+      // Los roles viven en el access token de la API, no en el ID token: hay que
+      // resolverlos antes de que el router evalue los guards.
+      return auth.refrescarClaimsDeApi();
     })
     .catch((error) => {
       console.error('No fue posible inicializar MSAL', error);

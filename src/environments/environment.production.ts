@@ -4,16 +4,16 @@
  */
 
 /** Subdominio del tenant externo (CIAM), sin el sufijo .ciamlogin.com */
-const TENANT_SUBDOMINIO = 'pedidos360duoc2026';
+const TENANT_SUBDOMINIO = 'pedidos360duocuc';
 
 /** Directory (tenant) ID del tenant externo */
-const TENANT_ID = 'PENDIENTE-pegar-el-Id-de-inquilino';
+const TENANT_ID = '9d265688-dbb5-4a46-9b9a-8f6765928aa0';
 
 export const environment = {
   production: true,
 
   msal: {
-    clientId: '11111111-1111-1111-1111-111111111111',
+    clientId: '4763762f-79ea-47ad-9966-bda5e049df68',
     tenantId: TENANT_ID,
     authority: `https://${TENANT_SUBDOMINIO}.ciamlogin.com/${TENANT_ID}`,
     knownAuthorities: [`${TENANT_SUBDOMINIO}.ciamlogin.com`],
@@ -27,7 +27,7 @@ export const environment = {
   ],
 
   /** Origen del stage del API Gateway (sin barra final). */
-  apiBaseUrl: 'https://api.pedidos360.example.cl',
+  apiBaseUrl: 'https://j9w6eomnw5.execute-api.us-east-1.amazonaws.com',
 
   rutas: {
     bff: '/api/bff',

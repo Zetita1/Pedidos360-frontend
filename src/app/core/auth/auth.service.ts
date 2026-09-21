@@ -2,6 +2,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { MsalBroadcastService, MsalService } from '@azure/msal-angular';
 import {
   AccountInfo,
+  AuthenticationResult,
   EventMessage,
   EventType,
   InteractionStatus,
@@ -85,23 +86,35 @@ export class AuthService {
       this.interaccion.set(estado);
       if (estado === InteractionStatus.None) {
         this.sincronizarCuenta();
-        void this.refrescarClaimsDeApi();
       }
     });
 
+    // Tras un login se piden los claims de la API una sola vez.
     this.broadcast.msalSubject$
-      .pipe(
-        filter(
-          (evento: EventMessage) =>
-            evento.eventType === EventType.LOGIN_SUCCESS ||
-            evento.eventType === EventType.ACQUIRE_TOKEN_SUCCESS ||
-            evento.eventType === EventType.ACTIVE_ACCOUNT_CHANGED,
-        ),
-      )
+      .pipe(filter((evento: EventMessage) => evento.eventType === EventType.LOGIN_SUCCESS))
       .subscribe(() => {
         this.sincronizarCuenta();
         void this.refrescarClaimsDeApi();
       });
+
+    // Cada vez que MSAL obtiene o renueva un token para la API, sus claims vienen en el
+    // propio evento: se leen de ahi. Volver a pedir el token desde este punto emitiria otro
+    // ACQUIRE_TOKEN_SUCCESS y entraria en un bucle infinito.
+    this.broadcast.msalSubject$
+      .pipe(filter((evento: EventMessage) => evento.eventType === EventType.ACQUIRE_TOKEN_SUCCESS))
+      .subscribe((evento) => {
+        const resultado = evento.payload as AuthenticationResult | null;
+        if (resultado?.accessToken && AuthService.esTokenDeLaApi(resultado)) {
+          this.claimsApi.set(AuthService.decodificarPayload(resultado.accessToken));
+        }
+      });
+  }
+
+  /** true si el token fue emitido para alguno de los scopes de la API de Pedidos360. */
+  private static esTokenDeLaApi(resultado: AuthenticationResult): boolean {
+    return resultado.scopes.some((scope) =>
+      environment.apiScopes.some((propio) => propio.toLowerCase() === scope.toLowerCase()),
+    );
   }
 
   /** Inicia sesion contra el IDaaS mediante redirect, solicitando los scopes de la API. */
@@ -187,8 +200,12 @@ export class AuthService {
       this.cuenta.set(null);
       return;
     }
-    const activa = this.msal.instance.getActiveAccount() ?? cuentas[0];
-    this.msal.instance.setActiveAccount(activa);
+    const actual = this.msal.instance.getActiveAccount();
+    const activa = actual ?? cuentas[0];
+    if (!actual) {
+      // setActiveAccount emite ACTIVE_ACCOUNT_CHANGED: solo se llama si de verdad cambia.
+      this.msal.instance.setActiveAccount(activa);
+    }
     this.cuenta.set(activa);
   }
 }

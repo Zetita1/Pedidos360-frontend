@@ -1,5 +1,5 @@
 /**
- * Configuracion productiva. El SPA se publica en S3 + CloudFront y consume la API a traves
+ * Configuracion productiva. El SPA se publica en AWS Amplify Hosting y consume la API a traves
  * del AWS API Gateway, que valida el JWT del IDaaS antes de llegar a los servicios en EC2.
  */
 
@@ -17,8 +17,8 @@ export const environment = {
     tenantId: TENANT_ID,
     authority: `https://${TENANT_SUBDOMINIO}.ciamlogin.com/${TENANT_ID}`,
     knownAuthorities: [`${TENANT_SUBDOMINIO}.ciamlogin.com`],
-    redirectUri: 'https://pedidos360.example.cl',
-    postLogoutRedirectUri: 'https://pedidos360.example.cl/login',
+    redirectUri: 'https://main.d1pem9n2nc75cz.amplifyapp.com',
+    postLogoutRedirectUri: 'https://main.d1pem9n2nc75cz.amplifyapp.com/login',
   },
 
   apiScopes: [

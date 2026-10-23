@@ -34,5 +34,7 @@ export const environment = {
     pedidos: '/api/v1/pedidos',
     productos: '/api/v1/productos',
     clientes: '/api/v1/clientes',
+    notificaciones: '/api/v1/notificaciones',
+    mensajeria: '/api/v1/mensajeria',
   },
 };

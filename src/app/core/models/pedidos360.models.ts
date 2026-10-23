@@ -138,3 +138,100 @@ export interface Tablero {
   stockCritico: ProductoCritico[];
   ultimosPedidos: PedidoResumen[];
 }
+
+// --- Mensajeria (EP3: RabbitMQ) --------------------------------------------
+
+export type TipoNotificacion = 'RECEPCION' | 'CONFIRMACION' | 'SEGUIMIENTO';
+
+/** Aviso generado por un consumidor a partir de un evento de pedido. */
+export interface Notificacion {
+  id: number;
+  tipo: TipoNotificacion;
+  pedidoNumero: string;
+  clienteId?: number;
+  destinatario?: string;
+  asunto: string;
+  mensaje: string;
+  eventoId: string;
+  creadoEn: string;
+}
+
+/** Ticket emitido de forma asincrona al confirmarse un pedido. */
+export interface Documento {
+  id: number;
+  folio: string;
+  pedidoNumero: string;
+  clienteId?: number;
+  clienteNombre?: string;
+  total: number;
+  contenido: string;
+  eventoId: string;
+  creadoEn: string;
+}
+
+/** Cola declarada en el broker, con su carga actual. */
+export interface Cola {
+  nombre: string;
+  mensajes?: number;
+  consumidores?: number;
+  delSistema: boolean;
+}
+
+/** Exchange declarado en el broker. */
+export interface Exchange {
+  nombre: string;
+  tipo: string;
+  durable?: boolean;
+  delSistema: boolean;
+}
+
+/** Routing key configurada para un evento de dominio. */
+export interface RutaMensajeria {
+  evento: string;
+  routingKey: string;
+}
+
+/** Colas de un caso de uso: principal, de reintento y de mensajes muertos. */
+export interface CasoDeUsoMensajeria {
+  casoDeUso: string;
+  cola: string;
+  colaReintento: string;
+  dlq: string;
+}
+
+/** Topologia declarada por la aplicacion. */
+export interface TopologiaMensajeria {
+  exchange: string;
+  exchangeDescarte: string;
+  maxIntentos: number;
+  esperaReintentoMs: number;
+  rutas: RutaMensajeria[];
+  casos: CasoDeUsoMensajeria[];
+}
+
+/** Resultado de una operacion de administracion sobre el broker. */
+export interface OperacionMensajeria {
+  operacion: string;
+  recurso: string;
+  detalle: string;
+}
+
+export interface CrearColaRequest {
+  nombre: string;
+  durable?: boolean;
+  conDlq?: boolean;
+  mensajeTtlMs?: number;
+  maxMensajes?: number;
+}
+
+export interface CrearExchangeRequest {
+  nombre: string;
+  tipo: string;
+  durable?: boolean;
+}
+
+export interface BindingRequest {
+  cola: string;
+  exchange: string;
+  routingKey: string;
+}

@@ -1,0 +1,100 @@
+<header class="cabecera">
+  <div>
+    <h1>Notificaciones</h1>
+    <p class="texto-suave">
+      Avisos y tickets generados por los consumidores de RabbitMQ a partir de los eventos de
+      pedidos
+    </p>
+  </div>
+  <button type="button" class="boton" (click)="refrescar()" [disabled]="cargando()">
+    {{ cargando() ? 'Actualizando...' : 'Actualizar' }}
+  </button>
+</header>
+
+<section class="panel" style="margin-bottom: 1rem">
+  <h2>Avisos al cliente</h2>
+  <p class="texto-suave">
+    Cola <code>pedidos360.notificaciones</code>: se alimenta de los eventos
+    <code>pedido.creado</code> y <code>pedido.estado-cambiado</code>.
+  </p>
+
+  @if (notificaciones().length === 0) {
+    <p class="vacio">
+      Todavia no hay avisos. Crea o cambia de estado un pedido y vuelve a esta vista.
+    </p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Tipo</th>
+          <th>Pedido</th>
+          <th>Asunto</th>
+          <th>Destinatario</th>
+          <th>Generado</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (aviso of notificaciones(); track aviso.id) {
+          <tr>
+            <td><span class="etiqueta" [class]="'etiqueta--' + clase(aviso.tipo)">{{ aviso.tipo }}</span></td>
+            <td>{{ aviso.pedidoNumero }}</td>
+            <td>
+              <strong>{{ aviso.asunto }}</strong>
+              <br />
+              <small class="texto-suave">{{ aviso.mensaje }}</small>
+            </td>
+            <td>{{ aviso.destinatario || '-' }}</td>
+            <td>{{ aviso.creadoEn | date: 'dd-MM-yyyy HH:mm:ss' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>
+
+<section class="panel">
+  <h2>Tickets emitidos</h2>
+  <p class="texto-suave">
+    Cola <code>pedidos360.documentos</code>: cada pedido confirmado genera su ticket sin que el
+    usuario tenga que esperarlo.
+  </p>
+
+  @if (documentos().length === 0) {
+    <p class="vacio">Todavia no hay tickets. Confirma un pedido para generar el primero.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Folio</th>
+          <th>Pedido</th>
+          <th>Cliente</th>
+          <th>Emitido</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (documento of documentos(); track documento.id) {
+          <tr>
+            <td><code>{{ documento.folio }}</code></td>
+            <td>{{ documento.pedidoNumero }}</td>
+            <td>{{ documento.clienteNombre || '-' }}</td>
+            <td>{{ documento.creadoEn | date: 'dd-MM-yyyy HH:mm:ss' }}</td>
+            <td class="acciones">
+              <button type="button" class="boton boton--claro" (click)="verTicket(documento)">
+                {{ ticketAbierto()?.id === documento.id ? 'Ocultar' : 'Ver ticket' }}
+              </button>
+              <button type="button" class="boton boton--claro" (click)="copiarTicket(documento)">
+                Copiar
+              </button>
+            </td>
+          </tr>
+          @if (ticketAbierto()?.id === documento.id) {
+            <tr>
+              <td colspan="5"><pre class="ticket">{{ documento.contenido }}</pre></td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  }
+</section>

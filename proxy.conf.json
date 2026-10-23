@@ -19,5 +19,15 @@
     "target": "http://localhost:8080",
     "secure": false,
     "changeOrigin": true
+  },
+  "/api/v1/notificaciones": {
+    "target": "http://localhost:8084",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/api/v1/mensajeria": {
+    "target": "http://localhost:8085",
+    "secure": false,
+    "changeOrigin": true
   }
 }

@@ -52,6 +52,22 @@ export const routes: Routes = [
           import('./features/clientes/clientes.component').then((m) => m.ClientesComponent),
       },
       {
+        path: 'notificaciones',
+        title: 'Notificaciones | Pedidos360',
+        canActivate: [rolGuard([ROLES.admin, ROLES.vendedor, ROLES.cliente])],
+        loadComponent: () =>
+          import('./features/notificaciones/notificaciones.component').then(
+            (m) => m.NotificacionesComponent,
+          ),
+      },
+      {
+        path: 'mensajeria',
+        title: 'Mensajeria | Pedidos360',
+        canActivate: [rolGuard([ROLES.admin, ROLES.vendedor])],
+        loadComponent: () =>
+          import('./features/mensajeria/mensajeria.component').then((m) => m.MensajeriaComponent),
+      },
+      {
         path: 'pedidos',
         title: 'Pedidos | Pedidos360',
         canActivate: [rolGuard([ROLES.admin, ROLES.vendedor])],

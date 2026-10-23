@@ -1,0 +1,293 @@
+<header class="cabecera">
+  <div>
+    <h1>Mensajeria</h1>
+    <p class="texto-suave">
+      Topologia de RabbitMQ y administracion de colas, exchanges y bindings a traves del
+      microservicio administrador
+    </p>
+  </div>
+  <button type="button" class="boton" (click)="refrescar()" [disabled]="cargando()">
+    {{ cargando() ? 'Actualizando...' : 'Actualizar' }}
+  </button>
+</header>
+
+@if (topologia(); as t) {
+  <section class="panel" style="margin-bottom: 1rem">
+    <h2>Topologia declarada por la aplicacion</h2>
+    <div class="resumen">
+      <div class="dato">
+        <small>Exchange de eventos</small>
+        <code>{{ t.exchange }}</code>
+      </div>
+      <div class="dato">
+        <small>Exchange de descarte</small>
+        <code>{{ t.exchangeDescarte }}</code>
+      </div>
+      <div class="dato">
+        <small>Intentos antes de la DLQ</small>
+        <strong>{{ t.maxIntentos }}</strong>
+      </div>
+      <div class="dato">
+        <small>Espera entre reintentos</small>
+        <strong>{{ t.esperaReintentoMs }} ms</strong>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Caso de uso</th>
+          <th>Cola principal</th>
+          <th>Cola de reintento</th>
+          <th>DLQ</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (caso of t.casos; track caso.casoDeUso) {
+          <tr>
+            <td><strong>{{ caso.casoDeUso }}</strong></td>
+            <td><code>{{ caso.cola }}</code></td>
+            <td><code>{{ caso.colaReintento }}</code></td>
+            <td><code>{{ caso.dlq }}</code></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <h3>Eventos y routing keys</h3>
+    <ul class="rutas">
+      @for (ruta of t.rutas; track ruta.evento) {
+        <li><code>{{ ruta.evento }}</code> <span>&rarr;</span> <code>{{ ruta.routingKey }}</code></li>
+      }
+    </ul>
+  </section>
+}
+
+<nav class="pestanas">
+  <button type="button" [class.activa]="pestana() === 'colas'" (click)="mostrar('colas')">Colas</button>
+  <button type="button" [class.activa]="pestana() === 'exchanges'" (click)="mostrar('exchanges')">
+    Exchanges
+  </button>
+  <button type="button" [class.activa]="pestana() === 'bindings'" (click)="mostrar('bindings')">
+    Bindings
+  </button>
+</nav>
+
+@if (pestana() === 'colas') {
+  <section class="panel">
+    <h2>Colas del broker</h2>
+    @if (colas().length === 0) {
+      <p class="vacio">
+        No se pudieron leer las colas. Revisa que RabbitMQ y el microservicio administrador
+        esten arriba.
+      </p>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Mensajes</th>
+            <th>Consumidores</th>
+            <th>Origen</th>
+            @if (auth.esAdmin()) {
+              <th></th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (cola of colas(); track cola.nombre) {
+            <tr>
+              <td><code>{{ cola.nombre }}</code></td>
+              <td>{{ cola.mensajes ?? '-' }}</td>
+              <td>{{ cola.consumidores ?? '-' }}</td>
+              <td>
+                @if (cola.delSistema) {
+                  <span class="etiqueta etiqueta--sistema">Sistema</span>
+                } @else {
+                  <span class="etiqueta">Propia</span>
+                }
+              </td>
+              @if (auth.esAdmin()) {
+                <td class="acciones">
+                  <button
+                    type="button"
+                    class="boton boton--claro"
+                    (click)="purgar(cola)"
+                    [disabled]="trabajando()"
+                  >
+                    Purgar
+                  </button>
+                  <button
+                    type="button"
+                    class="boton boton--peligro"
+                    (click)="eliminarCola(cola)"
+                    [disabled]="trabajando() || cola.delSistema"
+                    [title]="cola.delSistema ? 'La topologia del sistema esta protegida' : ''"
+                  >
+                    Eliminar
+                  </button>
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+
+    @if (auth.esAdmin()) {
+      <h3>Crear cola</h3>
+      <form [formGroup]="formCola" (ngSubmit)="crearCola()" class="formulario">
+        <div class="campo">
+          <label for="cola-nombre">Nombre</label>
+          <input id="cola-nombre" formControlName="nombre" placeholder="reportes.diarios" />
+          @if (colaInvalida('nombre')) {
+            <p class="campo__error">
+              Minimo 3 caracteres: letras, numeros, punto, guion y guion bajo.
+            </p>
+          }
+        </div>
+        <label class="casilla">
+          <input type="checkbox" formControlName="durable" />
+          Durable
+        </label>
+        <label class="casilla">
+          <input type="checkbox" formControlName="conDlq" />
+          Crear tambien su DLQ
+        </label>
+        <button type="submit" class="boton" [disabled]="trabajando()">Crear cola</button>
+      </form>
+    }
+  </section>
+}
+
+@if (pestana() === 'exchanges') {
+  <section class="panel">
+    <h2>Exchanges del broker</h2>
+    @if (exchanges().length === 0) {
+      <p class="vacio">
+        No se pudieron leer los exchanges. El listado necesita el plugin de gestion de
+        RabbitMQ habilitado.
+      </p>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Tipo</th>
+            <th>Durable</th>
+            <th>Origen</th>
+            @if (auth.esAdmin()) {
+              <th></th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (exchange of exchanges(); track exchange.nombre) {
+            <tr>
+              <td><code>{{ exchange.nombre }}</code></td>
+              <td>{{ exchange.tipo }}</td>
+              <td>{{ exchange.durable ? 'Si' : 'No' }}</td>
+              <td>
+                @if (exchange.delSistema) {
+                  <span class="etiqueta etiqueta--sistema">Sistema</span>
+                } @else {
+                  <span class="etiqueta">Propio</span>
+                }
+              </td>
+              @if (auth.esAdmin()) {
+                <td class="acciones">
+                  <button
+                    type="button"
+                    class="boton boton--peligro"
+                    (click)="eliminarExchange(exchange)"
+                    [disabled]="trabajando() || exchange.delSistema"
+                  >
+                    Eliminar
+                  </button>
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+
+    @if (auth.esAdmin()) {
+      <h3>Crear exchange</h3>
+      <form [formGroup]="formExchange" (ngSubmit)="crearExchange()" class="formulario">
+        <div class="campo">
+          <label for="exchange-nombre">Nombre</label>
+          <input id="exchange-nombre" formControlName="nombre" placeholder="reportes.exchange" />
+          @if (exchangeInvalido('nombre')) {
+            <p class="campo__error">Nombre invalido.</p>
+          }
+        </div>
+        <div class="campo">
+          <label for="exchange-tipo">Tipo</label>
+          <select id="exchange-tipo" formControlName="tipo">
+            <option value="topic">topic</option>
+            <option value="direct">direct</option>
+            <option value="fanout">fanout</option>
+            <option value="headers">headers</option>
+          </select>
+        </div>
+        <label class="casilla">
+          <input type="checkbox" formControlName="durable" />
+          Durable
+        </label>
+        <button type="submit" class="boton" [disabled]="trabajando()">Crear exchange</button>
+      </form>
+    }
+  </section>
+}
+
+@if (pestana() === 'bindings') {
+  <section class="panel">
+    <h2>Bindings</h2>
+    <p class="texto-suave">
+      Un binding une un exchange con una cola a traves de una routing key. Los bindings de la
+      topologia del sistema estan protegidos.
+    </p>
+
+    @if (auth.esAdmin()) {
+      <form [formGroup]="formBinding" class="formulario">
+        <div class="campo">
+          <label for="binding-exchange">Exchange</label>
+          <input id="binding-exchange" formControlName="exchange" placeholder="pedidos360.eventos" />
+          @if (bindingInvalido('exchange')) {
+            <p class="campo__error">Nombre de exchange invalido.</p>
+          }
+        </div>
+        <div class="campo">
+          <label for="binding-cola">Cola</label>
+          <input id="binding-cola" formControlName="cola" placeholder="reportes.diarios" />
+          @if (bindingInvalido('cola')) {
+            <p class="campo__error">Nombre de cola invalido.</p>
+          }
+        </div>
+        <div class="campo">
+          <label for="binding-routing">Routing key</label>
+          <input id="binding-routing" formControlName="routingKey" placeholder="pedido.*" />
+          @if (bindingInvalido('routingKey')) {
+            <p class="campo__error">La routing key es obligatoria.</p>
+          }
+        </div>
+        <div class="acciones">
+          <button type="button" class="boton" (click)="crearBinding()" [disabled]="trabajando()">
+            Crear binding
+          </button>
+          <button
+            type="button"
+            class="boton boton--peligro"
+            (click)="eliminarBinding()"
+            [disabled]="trabajando()"
+          >
+            Eliminar binding
+          </button>
+        </div>
+      </form>
+    } @else {
+      <p class="vacio">Solo el rol Pedidos.Admin administra bindings.</p>
+    }
+  </section>
+}

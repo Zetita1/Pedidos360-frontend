@@ -4,15 +4,24 @@ import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import {
+  BindingRequest,
   Cliente,
   ClienteRequest,
+  Cola,
+  CrearColaRequest,
+  CrearExchangeRequest,
   CrearPedidoRequest,
+  Documento,
   EstadoPedido,
+  Exchange,
+  Notificacion,
+  OperacionMensajeria,
   Pedido,
   PerfilUsuario,
   Producto,
   ProductoRequest,
   Tablero,
+  TopologiaMensajeria,
 } from '../models/pedidos360.models';
 
 /**
@@ -32,6 +41,8 @@ export class Pedidos360ApiService {
   private readonly pedidosUrl = `${this.origen}${environment.rutas.pedidos}`;
   private readonly productosUrl = `${this.origen}${environment.rutas.productos}`;
   private readonly clientesUrl = `${this.origen}${environment.rutas.clientes}`;
+  private readonly notificacionesUrl = `${this.origen}${environment.rutas.notificaciones}`;
+  private readonly mensajeriaUrl = `${this.origen}${environment.rutas.mensajeria}`;
 
   // --- Perfil -------------------------------------------------------------
 
@@ -133,5 +144,63 @@ export class Pedidos360ApiService {
       params = params.set('motivo', motivo);
     }
     return this.http.put<Pedido>(`${this.pedidosUrl}/${id}/anular`, {}, { params });
+  }
+
+  // --- Notificaciones y documentos (generados desde RabbitMQ) --------------
+
+  notificaciones(limite = 50): Observable<Notificacion[]> {
+    const params = new HttpParams().set('limite', String(limite));
+    return this.http.get<Notificacion[]>(`${this.notificacionesUrl}`, { params });
+  }
+
+  notificacionesDePedido(numero: string): Observable<Notificacion[]> {
+    return this.http.get<Notificacion[]>(`${this.notificacionesUrl}/pedido/${numero}`);
+  }
+
+  documentos(limite = 20): Observable<Documento[]> {
+    const params = new HttpParams().set('limite', String(limite));
+    return this.http.get<Documento[]>(`${this.notificacionesUrl}/documentos`, { params });
+  }
+
+  // --- Administracion del broker ------------------------------------------
+
+  topologiaMensajeria(): Observable<TopologiaMensajeria> {
+    return this.http.get<TopologiaMensajeria>(`${this.mensajeriaUrl}/topologia`);
+  }
+
+  colas(): Observable<Cola[]> {
+    return this.http.get<Cola[]>(`${this.mensajeriaUrl}/colas`);
+  }
+
+  crearCola(cola: CrearColaRequest): Observable<Cola> {
+    return this.http.post<Cola>(`${this.mensajeriaUrl}/colas`, cola);
+  }
+
+  purgarCola(nombre: string): Observable<Cola> {
+    return this.http.post<Cola>(`${this.mensajeriaUrl}/colas/${nombre}/purgar`, {});
+  }
+
+  eliminarCola(nombre: string): Observable<OperacionMensajeria> {
+    return this.http.delete<OperacionMensajeria>(`${this.mensajeriaUrl}/colas/${nombre}`);
+  }
+
+  exchanges(): Observable<Exchange[]> {
+    return this.http.get<Exchange[]>(`${this.mensajeriaUrl}/exchanges`);
+  }
+
+  crearExchange(exchange: CrearExchangeRequest): Observable<Exchange> {
+    return this.http.post<Exchange>(`${this.mensajeriaUrl}/exchanges`, exchange);
+  }
+
+  eliminarExchange(nombre: string): Observable<OperacionMensajeria> {
+    return this.http.delete<OperacionMensajeria>(`${this.mensajeriaUrl}/exchanges/${nombre}`);
+  }
+
+  crearBinding(binding: BindingRequest): Observable<OperacionMensajeria> {
+    return this.http.post<OperacionMensajeria>(`${this.mensajeriaUrl}/bindings`, binding);
+  }
+
+  eliminarBinding(binding: BindingRequest): Observable<OperacionMensajeria> {
+    return this.http.delete<OperacionMensajeria>(`${this.mensajeriaUrl}/bindings`, { body: binding });
   }
 }

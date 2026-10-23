@@ -1,28 +1,87 @@
 .login {
   display: flex;
   justify-content: center;
-  padding-top: 3rem;
+  padding-top: 3.5rem;
 
   &__tarjeta {
-    max-width: 460px;
+    position: relative;
+    max-width: 480px;
+    padding: 2.25rem 2rem 1.9rem;
     text-align: center;
+    box-shadow: var(--sombra-alta);
+    overflow: hidden;
+  }
+
+  /* Franja superior azul-ambar: la identidad entra por Azure y el trafico sale por AWS. */
+  &__tarjeta::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 4px;
+    background: linear-gradient(90deg, var(--color-primario), var(--color-acento));
   }
 
   &__logo {
-    display: inline-block;
-    background: var(--color-primario);
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    margin: 0 auto 1rem;
+    background: linear-gradient(135deg, var(--color-primario), var(--color-acento));
     color: #fff;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    padding: 0.5rem 0.8rem;
-    border-radius: 12px;
-    margin-bottom: 0.75rem;
+    font-weight: 800;
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px -8px rgba(43, 77, 224, 0.75);
   }
 
+  h1 {
+    font-size: 1.85rem;
+  }
+
+  p {
+    margin: 0 0 1.5rem;
+    font-size: 0.92rem;
+  }
+
+  .boton {
+    width: 100%;
+    padding: 0.7rem 1.1rem;
+    font-size: 0.95rem;
+  }
+
+  /* Los tres pasos del flujo, numerados a mano para que se lean como un recorrido. */
   &__pasos {
-    margin: 1.25rem 0 0;
-    padding-left: 1.1rem;
+    counter-reset: paso;
+    list-style: none;
+    margin: 1.75rem 0 0;
+    padding: 1.25rem 0 0;
+    border-top: 1px solid var(--color-borde);
     text-align: left;
-    font-size: 0.82rem;
+    font-size: 0.84rem;
+    display: grid;
+    gap: 0.65rem;
+  }
+
+  &__pasos li {
+    counter-increment: paso;
+    display: grid;
+    grid-template-columns: 1.35rem 1fr;
+    gap: 0.6rem;
+    align-items: start;
+  }
+
+  &__pasos li::before {
+    content: counter(paso);
+    display: grid;
+    place-items: center;
+    width: 1.35rem;
+    height: 1.35rem;
+    border-radius: 50%;
+    background: var(--color-primario-claro);
+    color: var(--color-primario-oscuro);
+    font-size: 0.7rem;
+    font-weight: 800;
   }
 }

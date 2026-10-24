@@ -98,3 +98,37 @@
     </table>
   }
 </section>
+
+@if (auditoria().length > 0) {
+  <section class="panel" style="margin-top: 1rem">
+    <h2>Auditoria de operaciones sensibles</h2>
+    <p class="texto-suave">
+      Cola <code>pedidos360.auditoria</code>: se alimenta del exchange <b>direct</b>
+      <code>pedidos360.comandos</code>, porque el comando tiene un unico destinatario.
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th>Operacion</th>
+          <th>Pedido</th>
+          <th>Responsable</th>
+          <th>Estado previo</th>
+          <th>Motivo</th>
+          <th>Ocurrio</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (registro of auditoria(); track registro.id) {
+          <tr>
+            <td><span class="etiqueta etiqueta--auditoria">{{ registro.operacion }}</span></td>
+            <td>{{ registro.pedidoNumero }}</td>
+            <td>{{ registro.usuarioNombre || registro.usuarioOid || '-' }}</td>
+            <td>{{ registro.estadoAnterior || '-' }}</td>
+            <td>{{ registro.motivo || '-' }}</td>
+            <td>{{ registro.ocurridoEn | date: 'dd-MM-yyyy HH:mm:ss' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+}

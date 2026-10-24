@@ -20,6 +20,7 @@ import {
   PerfilUsuario,
   Producto,
   ProductoRequest,
+  RegistroAuditoria,
   Tablero,
   TopologiaMensajeria,
 } from '../models/pedidos360.models';
@@ -160,6 +161,11 @@ export class Pedidos360ApiService {
   documentos(limite = 20): Observable<Documento[]> {
     const params = new HttpParams().set('limite', String(limite));
     return this.http.get<Documento[]>(`${this.notificacionesUrl}/documentos`, { params });
+  }
+
+  auditoria(limite = 50): Observable<RegistroAuditoria[]> {
+    const params = new HttpParams().set('limite', String(limite));
+    return this.http.get<RegistroAuditoria[]>(`${this.notificacionesUrl}/auditoria`, { params });
   }
 
   // --- Administracion del broker ------------------------------------------

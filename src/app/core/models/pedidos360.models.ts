@@ -169,6 +169,21 @@ export interface Documento {
   creadoEn: string;
 }
 
+/** Operacion sensible registrada por el consumidor de auditoria. */
+export interface RegistroAuditoria {
+  id: number;
+  operacion: string;
+  pedidoNumero: string;
+  clienteId?: number;
+  usuarioOid?: string;
+  usuarioNombre?: string;
+  estadoAnterior?: string;
+  monto?: number;
+  motivo?: string;
+  ocurridoEn: string;
+  eventoId: string;
+}
+
 /** Cola declarada en el broker, con su carga actual. */
 export interface Cola {
   nombre: string;
@@ -202,6 +217,7 @@ export interface CasoDeUsoMensajeria {
 /** Topologia declarada por la aplicacion. */
 export interface TopologiaMensajeria {
   exchange: string;
+  exchangeComandos: string;
   exchangeDescarte: string;
   maxIntentos: number;
   esperaReintentoMs: number;

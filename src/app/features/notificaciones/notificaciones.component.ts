@@ -1,7 +1,11 @@
 import { DatePipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 
-import { Documento, Notificacion } from '../../core/models/pedidos360.models';
+import {
+  Documento,
+  Notificacion,
+  RegistroAuditoria,
+} from '../../core/models/pedidos360.models';
 import { NotificacionesService } from '../../core/services/notificaciones.service';
 import { Pedidos360ApiService } from '../../core/services/pedidos360-api.service';
 
@@ -24,6 +28,7 @@ export class NotificacionesComponent {
 
   protected readonly notificaciones = signal<Notificacion[]>([]);
   protected readonly documentos = signal<Documento[]>([]);
+  protected readonly auditoria = signal<RegistroAuditoria[]>([]);
   protected readonly cargando = signal(false);
   protected readonly ticketAbierto = signal<Documento | null>(null);
 
@@ -44,6 +49,11 @@ export class NotificacionesComponent {
     this.api.documentos(20).subscribe({
       next: (documentos) => this.documentos.set(documentos),
       error: () => this.documentos.set([]),
+    });
+    // La auditoria solo la ven los roles de gestion: si responde 403 el panel no se muestra.
+    this.api.auditoria(20).subscribe({
+      next: (registros) => this.auditoria.set(registros),
+      error: () => this.auditoria.set([]),
     });
   }
 

@@ -48,6 +48,9 @@ export const environment = {
    * Para trabajar sin AWS, dejarlo vacio (''): las llamadas salen relativas y el proxy de
    * ng serve (proxy.conf.json) las reparte a los microservicios locales.
    */
+  // Origen del AWS API Gateway: el SPA demuestra el trafico pasando por el gateway, que
+  // valida el JWT antes de llegar al backend. Para trabajar 100% local (sin AWS), dejar
+  // vacio y el proxy de ng serve (proxy.conf.json) resuelve contra los puertos locales.
   apiBaseUrl: 'https://j9w6eomnw5.execute-api.us-east-1.amazonaws.com',
 
   /**
